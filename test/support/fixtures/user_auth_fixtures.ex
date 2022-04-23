@@ -11,8 +11,8 @@ defmodule MaxBank.UserAuthFixtures do
     {:ok, user} =
       attrs
       |> Enum.into(%{
-        email: "john@example.com",
-        name: "John Doe",
+        email: Faker.Internet.email(),
+        name: Faker.Person.PtBr.name(),
         password_hash: ""
       })
       |> MaxBank.UserAuth.create_user()
