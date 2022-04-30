@@ -37,14 +37,11 @@ defmodule MaxBank.UserAuthTest do
       user = insert(:user)
 
       update_attrs = %{
-        email: "john_doe@example.com",
         name: "John"
       }
 
       assert {:ok, %User{} = user} = UserAuth.update_user(user, update_attrs)
-      assert user.email == "john_doe@example.com"
       assert user.name == "John"
-      assert user.password_hash == ""
     end
 
     test "update_user/2 with invalid data returns error changeset" do

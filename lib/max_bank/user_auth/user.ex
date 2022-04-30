@@ -19,18 +19,18 @@ defmodule MaxBank.UserAuth.User do
   end
 
   @doc false
-  def changeset(user, attrs) do
+  def update_changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :email])
-    |> validate_required([:name, :email])
-    |> unique_constraint(:email)
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
   end
 
   @doc false
   def registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :email, :password])
-    |> validate_required([:name, :email, :password])
+    |> update_changeset(attrs)
+    |> cast(attrs, [:email, :password])
+    |> validate_required([:email, :password])
     |> unique_constraint(:email)
     |> validate_confirmation(:password)
     |> put_password_hash()
