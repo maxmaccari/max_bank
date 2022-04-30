@@ -28,6 +28,8 @@ defmodule MaxBankWeb.ConnCase do
 
       # The default endpoint for testing
       @endpoint MaxBankWeb.Endpoint
+
+      import MaxBank.Factory
     end
   end
 

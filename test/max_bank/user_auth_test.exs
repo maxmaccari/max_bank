@@ -6,8 +6,6 @@ defmodule MaxBank.UserAuthTest do
   describe "users" do
     alias MaxBank.UserAuth.User
 
-    import MaxBank.Factory
-
     @invalid_attrs %{email: nil, name: nil, password_hash: nil}
 
     test "get_user!/1 returns the user with given id" do
