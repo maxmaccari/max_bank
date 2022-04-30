@@ -1,4 +1,6 @@
 defmodule MaxBank.Factory do
+  @moduledoc false
+
   # with Ecto
   use ExMachina.Ecto, repo: MaxBank.Repo
   import Faker.Person.PtBr, only: [name: 0]

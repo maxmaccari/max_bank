@@ -4,6 +4,9 @@ defmodule MaxBank.UserAuthFixtures do
   entities via the `MaxBank.UserAuth` context.
   """
 
+  alias Faker.Internet
+  alias Faker.Person.PtBr, as: Person
+
   @doc """
   Generate a user.
   """
@@ -11,8 +14,8 @@ defmodule MaxBank.UserAuthFixtures do
     {:ok, user} =
       attrs
       |> Enum.into(%{
-        email: Faker.Internet.email(),
-        name: Faker.Person.PtBr.name(),
+        email: Internet.email(),
+        name: Person.name(),
         password_hash: ""
       })
       |> MaxBank.UserAuth.create_user()
