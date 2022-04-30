@@ -88,4 +88,22 @@ defmodule MaxBank.UserAuth do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.update_changeset(user, attrs)
   end
+
+  def authenticate_user(email, password) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        Pbkdf2.no_user_verify()
+        {:error, :unauthorized}
+
+      user ->
+        check_user_password(user, password)
+    end
+  end
+
+  defp check_user_password(%{password_hash: password_hash} = user, password) do
+    cond do
+      Pbkdf2.verify_pass(password, password_hash) -> {:ok, user}
+      true -> {:error, :unauthorized}
+    end
+  end
 end

@@ -60,5 +60,21 @@ defmodule MaxBank.UserAuthTest do
       user = insert(:user)
       assert %Ecto.Changeset{} = UserAuth.change_user(user)
     end
+
+    test "authenticate_user/2 returns the user with the right credentials" do
+      {:ok, user} = params_for(:user, password: "123456") |> UserAuth.register_user()
+
+      assert {:ok, %User{} = authenticated_user} =
+               UserAuth.authenticate_user(user.email, "123456")
+
+      assert user.id == authenticated_user.id
+    end
+
+    test "authenticate_user/2 returns the error with the wrong credentials" do
+      {:ok, user} = params_for(:user, password: "123456") |> UserAuth.register_user()
+
+      assert {:error, :unauthorized} = UserAuth.authenticate_user(user.email, "123")
+      assert {:error, :unauthorized} = UserAuth.authenticate_user("some_email@example.com", "123")
+    end
   end
 end
