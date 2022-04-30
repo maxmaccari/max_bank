@@ -18,6 +18,10 @@ config :max_bank, MaxBankWeb.Endpoint,
   pubsub_server: MaxBank.PubSub,
   live_view: [signing_salt: "NX9wxvLi"]
 
+config :max_bank, MaxBank.UserAuth.Guardian,
+  issuer: "max_bank",
+  secret_key: "x9kJDNTwvoNk2ElsnYWxijJAe8I6G8LQ48ZAe+qJw2EQA/3RX7DTlV5ZBzDW0Jda"
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
