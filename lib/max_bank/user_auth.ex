@@ -9,19 +9,6 @@ defmodule MaxBank.UserAuth do
   alias MaxBank.UserAuth.User
 
   @doc """
-  Returns the list of users.
-
-  ## Examples
-
-      iex> list_users()
-      [%User{}, ...]
-
-  """
-  def list_users do
-    Repo.all(User)
-  end
-
-  @doc """
   Gets a single user.
 
   Raises `Ecto.NoResultsError` if the User does not exist.
@@ -38,20 +25,20 @@ defmodule MaxBank.UserAuth do
   def get_user!(id), do: Repo.get!(User, id)
 
   @doc """
-  Creates a user.
+  Register a user.
 
   ## Examples
 
-      iex> create_user(%{field: value})
+      iex> register_user(%{field: value})
       {:ok, %User{}}
 
-      iex> create_user(%{field: bad_value})
+      iex> register_user(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_user(attrs \\ %{}) do
+  def register_user(attrs \\ %{}) do
     %User{}
-    |> User.changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -69,7 +56,7 @@ defmodule MaxBank.UserAuth do
   """
   def update_user(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.update_changeset(attrs)
     |> Repo.update()
   end
 
@@ -99,6 +86,24 @@ defmodule MaxBank.UserAuth do
 
   """
   def change_user(%User{} = user, attrs \\ %{}) do
-    User.changeset(user, attrs)
+    User.update_changeset(user, attrs)
+  end
+
+  def authenticate_user(email, password) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        Pbkdf2.no_user_verify()
+        {:error, :unauthorized}
+
+      user ->
+        check_user_password(user, password)
+    end
+  end
+
+  defp check_user_password(%{password_hash: password_hash} = user, password) do
+    cond do
+      Pbkdf2.verify_pass(password, password_hash) -> {:ok, user}
+      true -> {:error, :unauthorized}
+    end
   end
 end

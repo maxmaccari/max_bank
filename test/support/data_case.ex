@@ -24,6 +24,7 @@ defmodule MaxBank.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import MaxBank.DataCase
+      import MaxBank.Factory
     end
   end
 

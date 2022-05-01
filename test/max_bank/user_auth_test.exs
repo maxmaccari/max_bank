@@ -6,45 +6,40 @@ defmodule MaxBank.UserAuthTest do
   describe "users" do
     alias MaxBank.UserAuth.User
 
-    import MaxBank.Factory
-
     @invalid_attrs %{email: nil, name: nil, password_hash: nil}
-
-    test "list_users/0 returns all users" do
-      user = insert(:user)
-      assert UserAuth.list_users() == [user]
-    end
 
     test "get_user!/1 returns the user with given id" do
       user = insert(:user)
       assert UserAuth.get_user!(user.id) == user
     end
 
-    test "create_user/1 with valid data creates a user" do
-      valid_attrs = %{email: "john@example.com", name: "John Doe"}
+    test "register_user/1 with valid data creates a user" do
+      valid_attrs = %{
+        email: "john@example.com",
+        name: "John Doe",
+        password: "123456",
+        password_confirmation: "123456"
+      }
 
-      assert {:ok, %User{} = user} = UserAuth.create_user(valid_attrs)
+      assert {:ok, %User{} = user} = UserAuth.register_user(valid_attrs)
       assert user.email == "john@example.com"
       assert user.name == "John Doe"
-      assert user.password_hash == ""
+      assert Pbkdf2.verify_pass("123456", user.password_hash)
     end
 
-    test "create_user/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = UserAuth.create_user(@invalid_attrs)
+    test "register_user/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = UserAuth.register_user(@invalid_attrs)
     end
 
     test "update_user/2 with valid data updates the user" do
       user = insert(:user)
 
       update_attrs = %{
-        email: "john_doe@example.com",
         name: "John"
       }
 
       assert {:ok, %User{} = user} = UserAuth.update_user(user, update_attrs)
-      assert user.email == "john_doe@example.com"
       assert user.name == "John"
-      assert user.password_hash == ""
     end
 
     test "update_user/2 with invalid data returns error changeset" do
@@ -62,6 +57,22 @@ defmodule MaxBank.UserAuthTest do
     test "change_user/1 returns a user changeset" do
       user = insert(:user)
       assert %Ecto.Changeset{} = UserAuth.change_user(user)
+    end
+
+    test "authenticate_user/2 returns the user with the right credentials" do
+      {:ok, user} = params_for(:user, password: "123456") |> UserAuth.register_user()
+
+      assert {:ok, %User{} = authenticated_user} =
+               UserAuth.authenticate_user(user.email, "123456")
+
+      assert user.id == authenticated_user.id
+    end
+
+    test "authenticate_user/2 returns the error with the wrong credentials" do
+      {:ok, user} = params_for(:user, password: "123456") |> UserAuth.register_user()
+
+      assert {:error, :unauthorized} = UserAuth.authenticate_user(user.email, "123")
+      assert {:error, :unauthorized} = UserAuth.authenticate_user("some_email@example.com", "123")
     end
   end
 end

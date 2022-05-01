@@ -23,6 +23,8 @@ config :max_bank, MaxBankWeb.Endpoint,
 # In test we don't send emails.
 config :max_bank, MaxBank.Mailer, adapter: Swoosh.Adapters.Test
 
+config :pbkdf2_elixir, rounds: 1
+
 # Print only warnings and errors during test
 config :logger, level: :warn
 
