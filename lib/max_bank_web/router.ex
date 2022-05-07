@@ -15,7 +15,7 @@ defmodule MaxBankWeb.Router do
   end
 
   pipeline :user_authenticated do
-    plug MaxBankWeb.UserAuth.Pipeline
+    plug MaxBankWeb.UserAuth.EnsureAuthenticated
   end
 
   scope "/", MaxBankWeb do

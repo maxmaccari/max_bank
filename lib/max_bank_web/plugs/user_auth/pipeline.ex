@@ -1,4 +1,8 @@
-defmodule MaxBankWeb.UserAuth.Pipeline do
+defmodule MaxBankWeb.UserAuth.EnsureAuthenticated do
+  @moduledoc """
+  Ensure the user is authenticated.
+  """
+
   use Guardian.Plug.Pipeline,
     otp_app: :max_bank,
     error_handler: MaxBankWeb.UserAuth.ErrorHandler,

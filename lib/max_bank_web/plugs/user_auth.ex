@@ -1,4 +1,8 @@
 defmodule MaxBankWeb.UserAuth do
+  @moduledoc """
+  Functions that handle user authentication.
+  """
+
   alias MaxBankWeb.UserAuth.Guardian
 
   def encode_and_sign(user) do
