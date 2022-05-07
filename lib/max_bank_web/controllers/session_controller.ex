@@ -3,20 +3,24 @@ defmodule MaxBankWeb.SessionController do
 
   alias MaxBank.Users
   alias MaxBank.Users.User
-  alias MaxBank.Users.Guardian
+  alias MaxBankWeb.Auth
 
   action_fallback MaxBankWeb.FallbackController
 
   def create(conn, %{"credentials" => %{"email" => email, "password" => password}}) do
     with {:ok, %User{} = user} <- Users.authenticate_user(email, password),
-         {:ok, token, _claim} = encode_and_sign(user) do
+         {:ok, token} <- Auth.encode_and_sign(user) do
       conn
       |> put_status(:created)
       |> render("show.json", session: %{user: user, token: token})
-    end
-  end
+    else
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:unauthorized)
+        |> render("invalid_credentials.json")
 
-  defp encode_and_sign(user) do
-    Guardian.encode_and_sign(user, %{}, token_type: "access", ttl: {15, :minutes})
+      error ->
+        error
+    end
   end
 end

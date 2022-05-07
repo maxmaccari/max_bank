@@ -16,4 +16,12 @@ defmodule MaxBankWeb.SessionView do
       token: token
     }
   end
+
+  def render("invalid_credentials.json", _) do
+    %{
+      error: %{
+        message: "invalid credentials"
+      }
+    }
+  end
 end
