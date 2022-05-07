@@ -3,13 +3,13 @@ defmodule MaxBankWeb.SessionController do
 
   alias MaxBank.Users
   alias MaxBank.Users.User
-  alias MaxBankWeb.Auth
+  alias MaxBankWeb.UserAuth
 
-  action_fallback MaxBankWeb.FallbackController
+  action_fallback(MaxBankWeb.FallbackController)
 
   def create(conn, %{"credentials" => %{"email" => email, "password" => password}}) do
     with {:ok, %User{} = user} <- Users.authenticate_user(email, password),
-         {:ok, token} <- Auth.encode_and_sign(user) do
+         {:ok, token} <- UserAuth.encode_and_sign(user) do
       conn
       |> put_status(:created)
       |> render("show.json", session: %{user: user, token: token})

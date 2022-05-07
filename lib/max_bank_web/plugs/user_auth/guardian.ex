@@ -1,4 +1,4 @@
-defmodule MaxBank.Users.Guardian do
+defmodule MaxBankWeb.UserAuth.Guardian do
   use Guardian, otp_app: :max_bank
 
   alias MaxBank.Users
