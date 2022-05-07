@@ -56,4 +56,22 @@ defmodule MaxBankWeb.SessionControllerTest do
       assert %{"error" => %{"message" => "invalid credentials"}} = json_response(conn, 401)
     end
   end
+
+  describe "delete session" do
+    alias MaxBankWeb.UserAuth
+
+    test "with already authenticated user", %{conn: conn} do
+      user = register_user("pass123")
+      {:ok, token} = UserAuth.encode_and_sign(user)
+
+      conn =
+        conn
+        |> put_req_header("authorization", "Bearer #{token}")
+        |> delete(Routes.session_path(conn, :delete))
+
+      assert response(conn, 204) == ""
+
+      assert {:error, _error} = UserAuth.decode_and_verify(token)
+    end
+  end
 end

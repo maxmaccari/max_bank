@@ -22,6 +22,11 @@ config :max_bank, MaxBankWeb.UserAuth.Guardian,
   issuer: "max_bank",
   secret_key: "x9kJDNTwvoNk2ElsnYWxijJAe8I6G8LQ48ZAe+qJw2EQA/3RX7DTlV5ZBzDW0Jda"
 
+config :guardian, Guardian.DB,
+  repo: MaxBank.Repo,
+  schema_name: "guardian_tokens",
+  sweep_interval: 60
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
