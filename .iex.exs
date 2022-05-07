@@ -1,2 +1,2 @@
-alias MaxBank.UserAuth
-alias MaxBank.UserAuth.Guardian, as: UserGuardian
+alias MaxBank.Users
+alias MaxBank.Users.Guardian, as: UserGuardian

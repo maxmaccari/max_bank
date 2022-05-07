@@ -1,8 +1,8 @@
-defmodule MaxBank.UserAuth.Pipeline do
+defmodule MaxBank.Users.Pipeline do
   use Guardian.Plug.Pipeline,
     otp_app: :max_bank,
-    error_handler: MaxBank.UserAuth.ErrorHandler,
-    module: MaxBank.UserAuth.Guardian
+    error_handler: MaxBank.Users.ErrorHandler,
+    module: MaxBank.Users.Guardian
 
   # If there is a session token, restrict it to an access token and validate it
   plug Guardian.Plug.VerifySession, claims: %{"typ" => "access"}

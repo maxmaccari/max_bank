@@ -1,12 +1,12 @@
-defmodule MaxBank.UserAuth do
+defmodule MaxBank.Users do
   @moduledoc """
-  The UserAuth context.
+  The Users context.
   """
 
   import Ecto.Query, warn: false
   alias MaxBank.Repo
 
-  alias MaxBank.UserAuth.User
+  alias MaxBank.Users.User
 
   @doc """
   Gets a single user.

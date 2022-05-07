@@ -1,4 +1,4 @@
-defmodule MaxBank.UserAuth.ErrorHandler do
+defmodule MaxBank.Users.ErrorHandler do
   import Plug.Conn
 
   @behaviour Guardian.Plug.ErrorHandler
