@@ -1,88 +1,77 @@
 defmodule MaxBankWeb.SessionControllerTest do
-  use MaxBankWeb.ConnCase
+  use MaxBankWeb.ConnCase, async: true
 
-  import MaxBank.UserAuthFixtures
+  alias MaxBank.Users
 
-  alias MaxBank.UserAuth.Session
+  defp register_user(password) do
+    {:ok, user} =
+      :user
+      |> params_for()
+      |> Map.merge(%{password: password, password_confirmation: password})
+      |> Users.register_user()
 
-  @create_attrs %{
-    email: "some email",
-    password: "some password"
-  }
-  @update_attrs %{
-    email: "some updated email",
-    password: "some updated password"
-  }
-  @invalid_attrs %{email: nil, password: nil}
-
-  setup %{conn: conn} do
-    {:ok, conn: put_req_header(conn, "accept", "application/json")}
-  end
-
-  describe "index" do
-    test "lists all sessions", %{conn: conn} do
-      conn = get(conn, Routes.session_path(conn, :index))
-      assert json_response(conn, 200)["data"] == []
-    end
+    user
   end
 
   describe "create session" do
-    test "renders session when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.session_path(conn, :create), session: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+    test "with valid credentials", %{conn: conn} do
+      expect = register_user("pass123456")
 
-      conn = get(conn, Routes.session_path(conn, :show, id))
+      credentials = %{
+        email: expect.email,
+        password: "pass123456"
+      }
 
-      assert %{
-               "id" => ^id,
-               "email" => "some email",
-               "password" => "some password"
-             } = json_response(conn, 200)["data"]
+      conn = post(conn, Routes.session_path(conn, :create), credentials: credentials)
+      assert %{"data" => %{"user" => user, "token" => token}} = json_response(conn, 201)
+
+      assert String.length(token) > 0
+
+      assert user == %{
+               "id" => expect.id,
+               "name" => expect.name,
+               "email" => expect.email
+             }
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.session_path(conn, :create), session: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
+    test "with invalid password", %{conn: conn} do
+      expect = register_user("pass123456")
 
-  describe "update session" do
-    setup [:create_session]
+      credentials = %{
+        email: expect.email,
+        password: "invalid"
+      }
 
-    test "renders session when data is valid", %{conn: conn, session: %Session{id: id} = session} do
-      conn = put(conn, Routes.session_path(conn, :update, session), session: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.session_path(conn, :show, id))
-
-      assert %{
-               "id" => ^id,
-               "email" => "some updated email",
-               "password" => "some updated password"
-             } = json_response(conn, 200)["data"]
+      conn = post(conn, Routes.session_path(conn, :create), credentials: credentials)
+      assert %{"error" => %{"message" => "invalid credentials"}} = json_response(conn, 401)
     end
 
-    test "renders errors when data is invalid", %{conn: conn, session: session} do
-      conn = put(conn, Routes.session_path(conn, :update, session), session: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+    test "with invalid email", %{conn: conn} do
+      credentials = %{
+        email: "invalid@example.com",
+        password: "pas123456"
+      }
+
+      conn = post(conn, Routes.session_path(conn, :create), credentials: credentials)
+      assert %{"error" => %{"message" => "invalid credentials"}} = json_response(conn, 401)
     end
   end
 
   describe "delete session" do
-    setup [:create_session]
+    alias MaxBankWeb.UserAuth
 
-    test "deletes chosen session", %{conn: conn, session: session} do
-      conn = delete(conn, Routes.session_path(conn, :delete, session))
-      assert response(conn, 204)
+    test "with already authenticated user", %{conn: conn} do
+      user = register_user("pass123")
+      {:ok, token} = UserAuth.encode_and_sign(user)
 
-      assert_error_sent 404, fn ->
-        get(conn, Routes.session_path(conn, :show, session))
-      end
+      conn =
+        conn
+        |> put_req_header("authorization", "Bearer #{token}")
+        |> delete(Routes.session_path(conn, :delete))
+
+      assert response(conn, 204) == ""
+
+      assert {:error, _error} = UserAuth.decode_and_verify(token)
     end
-  end
-
-  defp create_session(_) do
-    session = session_fixture()
-    %{session: session}
   end
 end

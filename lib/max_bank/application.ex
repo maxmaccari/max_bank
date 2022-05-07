@@ -14,6 +14,7 @@ defmodule MaxBank.Application do
       MaxBankWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: MaxBank.PubSub},
+      {Guardian.DB.Token.SweeperServer, []},
       # Start the Endpoint (http/https)
       MaxBankWeb.Endpoint
       # Start a worker by calling: MaxBank.Worker.start_link(arg)

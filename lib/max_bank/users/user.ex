@@ -1,4 +1,4 @@
-defmodule MaxBank.UserAuth.User do
+defmodule MaxBank.Users.User do
   @moduledoc false
 
   use Ecto.Schema

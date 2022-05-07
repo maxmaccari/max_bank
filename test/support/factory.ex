@@ -5,7 +5,7 @@ defmodule MaxBank.Factory do
   use ExMachina.Ecto, repo: MaxBank.Repo
   import Faker.Person.PtBr, only: [name: 0]
 
-  alias MaxBank.UserAuth.User
+  alias MaxBank.Users.User
 
   def user_factory do
     %User{
