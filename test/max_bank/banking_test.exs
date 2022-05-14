@@ -30,5 +30,13 @@ defmodule MaxBank.BankingTest do
       assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_account(fake_user)
       assert errors_on(changeset) == %{user: ["does not exist"]}
     end
+
+    test "account_from_user/1 with valid user returns the account" do
+      user = insert(:user)
+      expected_account = insert(:account, user_id: user.id)
+
+      assert %Account{} = actual = Banking.account_from_user(user)
+      assert actual.id == expected_account.id
+    end
   end
 end

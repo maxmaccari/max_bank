@@ -55,4 +55,10 @@ defmodule MaxBank.Banking do
     |> Account.changeset(%{})
     |> Repo.insert()
   end
+
+  def account_from_user(%User{id: user_id}) do
+    Account
+    |> from(where: [user_id: ^user_id])
+    |> Repo.one()
+  end
 end
