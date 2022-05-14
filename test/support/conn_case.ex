@@ -30,6 +30,7 @@ defmodule MaxBankWeb.ConnCase do
       @endpoint MaxBankWeb.Endpoint
 
       import MaxBank.Factory
+      import MaxBank.UserHelpers
     end
   end
 
