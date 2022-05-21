@@ -61,4 +61,38 @@ defmodule MaxBank.Banking do
     |> from(where: [user_id: ^user_id])
     |> Repo.one()
   end
+
+  alias MaxBank.Banking.Transaction
+  alias Ecto.Multi
+
+  def create_transaction(%Account{id: id}, params) do
+    transaction = %Transaction{to_account_id: id}
+
+    Multi.new()
+    |> Multi.insert(:transaction, Transaction.changeset(transaction, params))
+    |> Multi.update_all(
+      :balance,
+      fn %{transaction: transaction} ->
+        increment_balance(transaction.to_account_id, transaction.amount)
+      end,
+      []
+    )
+    |> Repo.transaction()
+    |> normalize_response()
+  end
+
+  defp increment_balance(account_id, amount) do
+    Account
+    |> from()
+    |> where([a], a.id == ^account_id)
+    |> update([a], inc: [current_balance: ^amount])
+  end
+
+  defp normalize_response(response) do
+    case response do
+      {:ok, %{transaction: transaction}} -> {:ok, transaction}
+      {:error, :transaction, changeset, _} -> {:error, changeset}
+      {:error, _, reason, _} -> {:error, reason}
+    end
+  end
 end

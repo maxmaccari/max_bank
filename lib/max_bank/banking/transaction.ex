@@ -24,8 +24,8 @@ defmodule MaxBank.Banking.Transaction do
     |> validate_required([:type, :amount])
     |> validate_number(:amount, greater_than: 0)
     |> validate_account_ids()
-    |> assoc_constraint(:from_account_id)
-    |> assoc_constraint(:to_account_id)
+    |> assoc_constraint(:from_account)
+    |> assoc_constraint(:to_account)
   end
 
   defp validate_account_ids(%Changeset{changes: %{type: :deposit}} = changeset) do
@@ -39,4 +39,6 @@ defmodule MaxBank.Banking.Transaction do
   defp validate_account_ids(%Changeset{changes: %{type: :transference}} = changeset) do
     validate_required(changeset, [:from_account_id, :to_account_id])
   end
+
+  defp validate_account_ids(changeset), do: changeset
 end
