@@ -23,6 +23,7 @@ defmodule MaxBank.Banking.Transaction do
     |> cast(attrs, [:type, :amount, :to_account_id])
     |> validate_required([:type, :amount])
     |> validate_number(:amount, greater_than: 0)
+    |> normalize_account_ids()
     |> validate_account_ids()
     |> assoc_constraint(:from_account)
     |> assoc_constraint(:to_account)
@@ -41,4 +42,14 @@ defmodule MaxBank.Banking.Transaction do
   end
 
   defp validate_account_ids(changeset), do: changeset
+
+  defp normalize_account_ids(%Changeset{changes: %{type: :deposit}} = changeset) do
+    put_change(changeset, :from_account_id, nil)
+  end
+
+  defp normalize_account_ids(%Changeset{changes: %{type: :withdraw}} = changeset) do
+    put_change(changeset, :to_account_id, nil)
+  end
+
+  defp normalize_account_ids(changeset), do: changeset
 end
