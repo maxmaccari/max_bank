@@ -87,7 +87,7 @@ defmodule MaxBank.BankingTest do
     end
 
     test "create_transaction/2 with valid withdraw data creates a withdraw transaction" do
-      account = insert(:account)
+      account = insert(:account, current_balance: Decimal.new("200.0"))
 
       params = %{
         type: :withdraw,
@@ -113,6 +113,19 @@ defmodule MaxBank.BankingTest do
       account = Banking.get_account!(account.id)
 
       assert account.current_balance == Decimal.new("100.0")
+    end
+
+    test "create_transaction/2 with valid withdraw data doesn't allow to withdraw with insuficient funds" do
+      account = insert(:account, current_balance: Decimal.new("50.0"))
+
+      params = %{
+        type: :withdraw,
+        amount: "100.0"
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_transaction(account, params)
+
+      assert %{amount: ["insuficient funds"]} = errors_on(changeset)
     end
 
     test "create_transaction/2 with invalid data doesn't create the transaction" do

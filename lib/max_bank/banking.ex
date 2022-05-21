@@ -78,6 +78,16 @@ defmodule MaxBank.Banking do
       fn %{transaction: transaction} -> increment_balance(transaction) end,
       []
     )
+    |> Multi.run(
+      :ensure_positive_balance,
+      fn _repo, %{balance: {_, [balance]}, transaction: transaction} ->
+        if Decimal.negative?(balance) do
+          {:error, Transaction.insuficient_funds_changeset(transaction)}
+        else
+          {:ok, balance}
+        end
+      end
+    )
     |> Repo.transaction()
     |> normalize_response()
   end
@@ -95,6 +105,7 @@ defmodule MaxBank.Banking do
     Account
     |> from()
     |> where([a], a.id == ^account_id)
+    |> select([a], a.current_balance)
     |> update([a], inc: [current_balance: ^amount])
   end
 
