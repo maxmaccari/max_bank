@@ -65,6 +65,20 @@ defmodule MaxBank.Banking do
   alias MaxBank.Banking.Transaction
   alias Ecto.Multi
 
+  def list_transactions(%Account{id: account_id}) do
+    from(t in Transaction,
+      where: t.from_account_id == ^account_id or t.to_account_id == ^account_id
+    )
+    |> Repo.all()
+  end
+
+  def get_transaction!(%Account{id: account_id}, id) do
+    from(t in Transaction,
+      where: t.from_account_id == ^account_id or t.to_account_id == ^account_id
+    )
+    |> Repo.get!(id)
+  end
+
   def create_transaction(%Account{id: id}, params) do
     transaction = %Transaction{
       to_account_id: id,

@@ -1,7 +1,6 @@
 defmodule MaxBankWeb.TransactionControllerTest do
   use MaxBankWeb.ConnCase
 
-  alias MaxBank.Banking.Transaction
   alias MaxBankWeb.UserAuth
 
   @invalid_attrs %{amount: nil, type: nil}
@@ -25,6 +24,15 @@ defmodule MaxBankWeb.TransactionControllerTest do
      ]}
   end
 
+  describe "index" do
+    test "lists all transactions from the given account", %{conn: conn, account: account} do
+      %{id: id} = insert(:transaction, to_account_id: account.id)
+
+      conn = get(conn, Routes.transaction_path(conn, :index))
+      assert [%{"id" => ^id}] = json_response(conn, 200)["data"]
+    end
+  end
+
   describe "create transaction" do
     test "renders transaction when data is valid", %{conn: conn, account: account} do
       %{id: account_id} = account
@@ -37,11 +45,17 @@ defmodule MaxBankWeb.TransactionControllerTest do
       conn = post(conn, Routes.transaction_path(conn, :create), transaction: valid_attrs)
 
       assert %{
-               "id" => _id,
+               "id" => id
+             } = json_response(conn, 201)["data"]
+
+      conn = get(conn, Routes.transaction_path(conn, :show, id))
+
+      assert %{
+               "id" => ^id,
                "amount" => "100.00",
                "type" => "deposit",
                "to_account_id" => ^account_id
-             } = json_response(conn, 201)["data"]
+             } = json_response(conn, 200)["data"]
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

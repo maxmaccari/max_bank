@@ -6,7 +6,7 @@ defmodule MaxBank.Factory do
   import Faker.Person.PtBr, only: [name: 0]
 
   alias MaxBank.Users.User
-  alias MaxBank.Banking.Account
+  alias MaxBank.Banking.{Account, Transaction}
 
   def user_factory do
     %User{
@@ -21,6 +21,16 @@ defmodule MaxBank.Factory do
 
     %Account{
       user_id: user.id
+    }
+  end
+
+  def transaction_factory do
+    account = insert(:account)
+
+    %Transaction{
+      to_account_id: account.id,
+      amount: 1..100 |> Enum.random() |> Decimal.new(),
+      type: :deposit
     }
   end
 end

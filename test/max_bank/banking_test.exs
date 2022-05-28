@@ -138,7 +138,9 @@ defmodule MaxBank.BankingTest do
         to_account_id: to_account.id
       }
 
-      assert {:ok, %Transaction{} = transaction} = Banking.create_transaction(from_account, params)
+      assert {:ok, %Transaction{} = transaction} =
+               Banking.create_transaction(from_account, params)
+
       assert transaction.type == :transference
       assert transaction.amount == Decimal.new("100.0")
       assert transaction.to_account_id == to_account.id
@@ -174,7 +176,8 @@ defmodule MaxBank.BankingTest do
         to_account_id: to_account.id
       }
 
-      assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_transaction(from_account, params)
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Banking.create_transaction(from_account, params)
 
       assert %{amount: ["insuficient funds"]} = errors_on(changeset)
     end
@@ -209,6 +212,21 @@ defmodule MaxBank.BankingTest do
       assert %{
                to_account: ["does not exist"]
              } = errors_on(changeset)
+    end
+
+    test "list_transactions/1 returns the transactions list from account" do
+      insert(:transaction)
+      %{to_account_id: account_id, id: id} = insert(:transaction)
+      account = Banking.get_account!(account_id)
+
+      assert [%Transaction{id: ^id}] = Banking.list_transactions(account)
+    end
+
+    test "get_transaction!/2 returns the transaction from account" do
+      %{to_account_id: account_id, id: id} = insert(:transaction)
+      account = Banking.get_account!(account_id)
+
+      assert %Transaction{id: ^id} = Banking.get_transaction!(account, id)
     end
   end
 end
