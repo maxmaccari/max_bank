@@ -73,35 +73,40 @@ defmodule MaxBank.Banking do
 
     Multi.new()
     |> Multi.insert(:transaction, Transaction.changeset(transaction, params))
-    |> Multi.update_all(
-      :balance,
-      fn %{transaction: transaction} -> increment_balance(transaction) end,
-      []
+    |> Multi.run(
+      :incremented_balance,
+      fn repo, %{transaction: transaction} -> increment_balance(repo, transaction) end
     )
     |> Multi.run(
-      :ensure_positive_balance,
-      fn _repo, %{balance: {_, [balance]}, transaction: transaction} ->
-        if Decimal.negative?(balance) do
-          {:error, Transaction.insuficient_funds_changeset(transaction)}
-        else
-          {:ok, balance}
-        end
-      end
+      :decremented_balance,
+      fn repo, %{transaction: transaction} -> decrement_balance(repo, transaction) end
     )
+    |> Multi.run(:ensure_positive_balance, &ensure_positive_balance/2)
     |> Repo.transaction()
     |> normalize_response()
   end
 
-  defp increment_balance(%{type: :deposit} = transaction) do
-    increment_balance(transaction.to_account_id, transaction.amount)
+  defp increment_balance(_repo, %{to_account_id: nil}), do: {:ok, nil}
+
+  defp increment_balance(repo, %{to_account_id: to_account_id, amount: amount}) do
+    to_account_id
+    |> increment_balance_query(amount)
+    |> repo.update_all([])
+    |> then(fn results -> {:ok, results} end)
   end
 
-  defp increment_balance(%{type: :withdraw} = transaction) do
-    amount = Decimal.negate(transaction.amount)
-    increment_balance(transaction.from_account_id, amount)
+  defp decrement_balance(_repo, %{from_account_id: nil}), do: {:ok, nil}
+
+  defp decrement_balance(repo, %{from_account_id: from_account_id, amount: amount}) do
+    amount = Decimal.negate(amount)
+
+    from_account_id
+    |> increment_balance_query(amount)
+    |> repo.update_all([])
+    |> then(fn results -> {:ok, results} end)
   end
 
-  defp increment_balance(account_id, amount) do
+  defp increment_balance_query(account_id, amount) do
     Account
     |> from()
     |> where([a], a.id == ^account_id)
@@ -116,4 +121,14 @@ defmodule MaxBank.Banking do
       {:error, _, reason, _} -> {:error, reason}
     end
   end
+
+  defp ensure_positive_balance(_repo, %{decremented_balance: {_, [balance]}, transaction: transaction}) do
+    if Decimal.negative?(balance) do
+      {:error, Transaction.insuficient_funds_changeset(transaction)}
+    else
+      {:ok, balance}
+    end
+  end
+
+  defp ensure_positive_balance(_repo, _result), do: {:ok, nil}
 end

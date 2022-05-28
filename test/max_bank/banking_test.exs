@@ -128,6 +128,57 @@ defmodule MaxBank.BankingTest do
       assert %{amount: ["insuficient funds"]} = errors_on(changeset)
     end
 
+    test "create_transaction/2 with valid transference data creates a transference transaction" do
+      from_account = insert(:account, current_balance: Decimal.new("100.0"))
+      to_account = insert(:account)
+
+      params = %{
+        type: :transference,
+        amount: "100.0",
+        to_account_id: to_account.id
+      }
+
+      assert {:ok, %Transaction{} = transaction} = Banking.create_transaction(from_account, params)
+      assert transaction.type == :transference
+      assert transaction.amount == Decimal.new("100.0")
+      assert transaction.to_account_id == to_account.id
+      assert transaction.from_account_id == from_account.id
+    end
+
+    test "create_transaction/2 with valid transference data update the accounts current_balance" do
+      from_account = insert(:account, current_balance: Decimal.new("100.0"))
+      to_account = insert(:account)
+
+      params = %{
+        type: :transference,
+        amount: "100.0",
+        to_account_id: to_account.id
+      }
+
+      Banking.create_transaction(from_account, params)
+
+      from_account = Banking.get_account!(from_account.id)
+      to_account = Banking.get_account!(to_account.id)
+
+      assert from_account.current_balance == Decimal.new("0.0")
+      assert to_account.current_balance == Decimal.new("100.0")
+    end
+
+    test "create_transaction/2 with valid transference data doesn't allow to transference with insuficient funds" do
+      from_account = insert(:account, current_balance: Decimal.new("50.0"))
+      to_account = insert(:account)
+
+      params = %{
+        type: :transference,
+        amount: "100.0",
+        to_account_id: to_account.id
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_transaction(from_account, params)
+
+      assert %{amount: ["insuficient funds"]} = errors_on(changeset)
+    end
+
     test "create_transaction/2 with invalid data doesn't create the transaction" do
       account = insert(:account)
 
