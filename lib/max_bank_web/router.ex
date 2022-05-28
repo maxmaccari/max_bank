@@ -36,6 +36,7 @@ defmodule MaxBankWeb.Router do
     pipe_through [:api, :user_authenticated]
 
     resources "/session", SessionController, only: [:delete], singleton: true
+    resources "/transactions", TransactionController, only: [:index, :show, :create]
   end
 
   # Enables LiveDashboard only for development

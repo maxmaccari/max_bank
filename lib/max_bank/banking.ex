@@ -120,7 +120,10 @@ defmodule MaxBank.Banking do
     end
   end
 
-  defp ensure_positive_balance(_repo, %{decremented_balance: {_, [balance]}, transaction: transaction}) do
+  defp ensure_positive_balance(_repo, %{
+         decremented_balance: {_, [balance]},
+         transaction: transaction
+       }) do
     if Decimal.negative?(balance) do
       {:error, Transaction.insuficient_funds_changeset(transaction)}
     else
