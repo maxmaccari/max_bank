@@ -7,9 +7,9 @@ defmodule MaxBank.BankingTest do
     alias MaxBank.Banking.Account
     alias MaxBank.Users.User
 
-    test "list_account/0 returns all account" do
+    test "list_accounts/0 returns all account" do
       account = insert(:account)
-      assert Banking.list_account() == [account]
+      assert Banking.list_accounts() == [account]
     end
 
     test "get_account!/1 returns the account with given id" do

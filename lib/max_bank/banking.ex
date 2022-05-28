@@ -10,15 +10,15 @@ defmodule MaxBank.Banking do
   alias MaxBank.Banking.Account
 
   @doc """
-  Returns the list of account.
+  Returns the list of accounts.
 
   ## Examples
 
-      iex> list_account()
+      iex> list_accounts()
       [%Account{}, ...]
 
   """
-  def list_account do
+  def list_accounts do
     Repo.all(Account)
   end
 
