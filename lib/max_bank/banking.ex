@@ -71,8 +71,14 @@ defmodule MaxBank.Banking do
       from_account_id: id
     }
 
+    transaction
+    |> Transaction.changeset(params)
+    |> do_create_transaction()
+  end
+
+  defp do_create_transaction(transaction_changeset) do
     Multi.new()
-    |> Multi.insert(:transaction, Transaction.changeset(transaction, params))
+    |> Multi.insert(:transaction, transaction_changeset)
     |> Multi.run(
       :incremented_balance,
       fn repo, %{transaction: transaction} -> increment_balance(repo, transaction) end
@@ -90,7 +96,7 @@ defmodule MaxBank.Banking do
 
   defp increment_balance(repo, %{to_account_id: to_account_id, amount: amount}) do
     to_account_id
-    |> increment_balance_query(amount)
+    |> Account.increment_balance(amount)
     |> repo.update_all([])
     |> then(fn results -> {:ok, results} end)
   end
@@ -101,17 +107,9 @@ defmodule MaxBank.Banking do
     amount = Decimal.negate(amount)
 
     from_account_id
-    |> increment_balance_query(amount)
+    |> Account.increment_balance(amount)
     |> repo.update_all([])
     |> then(fn results -> {:ok, results} end)
-  end
-
-  defp increment_balance_query(account_id, amount) do
-    Account
-    |> from()
-    |> where([a], a.id == ^account_id)
-    |> select([a], a.current_balance)
-    |> update([a], inc: [current_balance: ^amount])
   end
 
   defp normalize_response(response) do
