@@ -60,14 +60,10 @@ defmodule MaxBankWeb.SessionControllerTest do
   describe "delete session" do
     alias MaxBankWeb.UserAuth
 
-    test "with already authenticated user", %{conn: conn} do
-      user = register_user("pass123")
-      {:ok, token} = UserAuth.encode_and_sign(user)
+    setup :authenticated_user
 
-      conn =
-        conn
-        |> put_req_header("authorization", "Bearer #{token}")
-        |> delete(Routes.session_path(conn, :delete))
+    test "with already authenticated user", %{conn: conn, token: token} do
+      conn = delete(conn, Routes.session_path(conn, :delete))
 
       assert response(conn, 204) == ""
 

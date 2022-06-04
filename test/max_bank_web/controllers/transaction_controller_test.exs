@@ -1,27 +1,14 @@
 defmodule MaxBankWeb.TransactionControllerTest do
   use MaxBankWeb.ConnCase
 
-  alias MaxBankWeb.UserAuth
-
   @invalid_attrs %{amount: nil, type: nil}
 
-  setup %{conn: conn} do
-    user = insert(:user)
+  setup :authenticated_user
+
+  setup %{user: user} do
     account = insert(:account, user_id: user.id)
 
-    {:ok, token} = UserAuth.encode_and_sign(user)
-
-    conn =
-      conn
-      |> put_req_header("accept", "application/json")
-      |> put_req_header("authorization", "Bearer #{token}")
-
-    {:ok,
-     [
-       conn: put_req_header(conn, "accept", "application/json"),
-       account: account,
-       user: user
-     ]}
+    {:ok, [account: account]}
   end
 
   describe "index" do
@@ -29,6 +16,35 @@ defmodule MaxBankWeb.TransactionControllerTest do
       %{id: id} = insert(:transaction, to_account_id: account.id)
 
       conn = get(conn, Routes.transaction_path(conn, :index))
+      assert [%{"id" => ^id}] = json_response(conn, 200)["data"]
+    end
+
+    test "filter transactions by date", %{conn: conn, account: account} do
+      insert(:transaction,
+        to_account_id: account.id,
+        inserted_at: NaiveDateTime.new!(2022, 1, 1, 12, 0, 0)
+      )
+
+      insert(:transaction,
+        to_account_id: account.id,
+        inserted_at: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0)
+      )
+
+      %{id: id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 2, 12, 0, 0)
+        )
+
+      conn =
+        get(
+          conn,
+          Routes.transaction_path(conn, :index,
+            from: "2022-01-02 11:00:00",
+            to: "2022-01-02 13:00:00"
+          )
+        )
+
       assert [%{"id" => ^id}] = json_response(conn, 200)["data"]
     end
   end
@@ -45,7 +61,8 @@ defmodule MaxBankWeb.TransactionControllerTest do
       conn = post(conn, Routes.transaction_path(conn, :create), transaction: valid_attrs)
 
       assert %{
-               "id" => id
+               "id" => id,
+               "inserted_at" => inserted_at
              } = json_response(conn, 201)["data"]
 
       conn = get(conn, Routes.transaction_path(conn, :show, id))
@@ -54,7 +71,8 @@ defmodule MaxBankWeb.TransactionControllerTest do
                "id" => ^id,
                "amount" => "100.00",
                "type" => "deposit",
-               "to_account_id" => ^account_id
+               "to_account_id" => ^account_id,
+               "inserted_at" => ^inserted_at
              } = json_response(conn, 200)["data"]
     end
 

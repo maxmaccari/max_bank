@@ -65,17 +65,16 @@ defmodule MaxBank.Banking do
   alias MaxBank.Banking.Transaction
   alias Ecto.Multi
 
-  def list_transactions(%Account{id: account_id}) do
-    from(t in Transaction,
-      where: t.from_account_id == ^account_id or t.to_account_id == ^account_id
-    )
+  def list_transactions(%Account{id: account_id}, filters \\ []) do
+    Transaction
+    |> Transaction.from_account(account_id)
+    |> Transaction.apply_filters(filters)
     |> Repo.all()
   end
 
   def get_transaction!(%Account{id: account_id}, id) do
-    from(t in Transaction,
-      where: t.from_account_id == ^account_id or t.to_account_id == ^account_id
-    )
+    account_id
+    |> Transaction.from_account()
     |> Repo.get!(id)
   end
 

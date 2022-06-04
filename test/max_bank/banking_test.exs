@@ -182,6 +182,22 @@ defmodule MaxBank.BankingTest do
       assert %{amount: ["insuficient funds"]} = errors_on(changeset)
     end
 
+    test "create_transaction/2 transference to same account doesn't create the transaction" do
+      account = insert(:account, current_balance: Decimal.new("50.0"))
+
+      params = %{
+        type: :transference,
+        amount: "40.0",
+        to_account_id: account.id
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_transaction(account, params)
+
+      assert %{
+               to_account_id: ["is not allowed"]
+             } = errors_on(changeset)
+    end
+
     test "create_transaction/2 with invalid data doesn't create the transaction" do
       account = insert(:account)
 
@@ -220,6 +236,40 @@ defmodule MaxBank.BankingTest do
       account = Banking.get_account!(account_id)
 
       assert [%Transaction{id: ^id}] = Banking.list_transactions(account)
+    end
+
+    test "list_transactions/2 returns the transactions filtering by date" do
+      account = insert(:account)
+
+      %{id: first_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 1, 12, 0, 0)
+        )
+
+      %{id: middle_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 2, 12, 0, 0)
+        )
+
+      %{id: last_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0)
+        )
+
+      assert [%Transaction{id: ^first_id}] =
+               Banking.list_transactions(account, to: NaiveDateTime.new!(2022, 1, 1, 13, 0, 0))
+
+      assert [%Transaction{id: ^last_id}] =
+               Banking.list_transactions(account, from: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0))
+
+      assert [%Transaction{id: ^middle_id}] =
+               Banking.list_transactions(account,
+                 from: NaiveDateTime.new!(2022, 1, 2, 0, 0, 0),
+                 to: NaiveDateTime.new!(2022, 1, 2, 23, 59, 59)
+               )
     end
 
     test "get_transaction!/2 returns the transaction from account" do
