@@ -22,4 +22,8 @@ defmodule MaxBankWeb.UserAuth do
       error -> error
     end
   end
+
+  def current_user(conn) do
+    Guardian.Plug.current_resource(conn)
+  end
 end
