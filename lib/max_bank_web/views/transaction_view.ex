@@ -16,7 +16,8 @@ defmodule MaxBankWeb.TransactionView do
       amount: transaction.amount,
       type: transaction.type,
       from_account_id: transaction.from_account_id,
-      to_account_id: transaction.to_account_id
+      to_account_id: transaction.to_account_id,
+      inserted_at: transaction.inserted_at
     }
   end
 end

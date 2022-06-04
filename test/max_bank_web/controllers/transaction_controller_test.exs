@@ -61,7 +61,8 @@ defmodule MaxBankWeb.TransactionControllerTest do
       conn = post(conn, Routes.transaction_path(conn, :create), transaction: valid_attrs)
 
       assert %{
-               "id" => id
+               "id" => id,
+               "inserted_at" => inserted_at
              } = json_response(conn, 201)["data"]
 
       conn = get(conn, Routes.transaction_path(conn, :show, id))
@@ -70,7 +71,8 @@ defmodule MaxBankWeb.TransactionControllerTest do
                "id" => ^id,
                "amount" => "100.00",
                "type" => "deposit",
-               "to_account_id" => ^account_id
+               "to_account_id" => ^account_id,
+               "inserted_at" => ^inserted_at
              } = json_response(conn, 200)["data"]
     end
 
