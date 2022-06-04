@@ -182,6 +182,22 @@ defmodule MaxBank.BankingTest do
       assert %{amount: ["insuficient funds"]} = errors_on(changeset)
     end
 
+    test "create_transaction/2 transference to same account doesn't create the transaction" do
+      account = insert(:account, current_balance: Decimal.new("50.0"))
+
+      params = %{
+        type: :transference,
+        amount: "40.0",
+        to_account_id: account.id
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} = Banking.create_transaction(account, params)
+
+      assert %{
+               to_account_id: ["is not allowed"]
+             } = errors_on(changeset)
+    end
+
     test "create_transaction/2 with invalid data doesn't create the transaction" do
       account = insert(:account)
 

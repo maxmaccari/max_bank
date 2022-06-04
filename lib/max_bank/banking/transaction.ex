@@ -38,10 +38,23 @@ defmodule MaxBank.Banking.Transaction do
   end
 
   defp validate_account_ids(%Changeset{changes: %{type: :transference}} = changeset) do
-    validate_required(changeset, [:from_account_id, :to_account_id])
+    changeset
+    |> validate_required([:from_account_id, :to_account_id])
+    |> validate_same_accounts()
   end
 
   defp validate_account_ids(changeset), do: changeset
+
+  defp validate_same_accounts(changeset) do
+    from_account_id = get_field(changeset, :from_account_id)
+    to_account_id = get_field(changeset, :to_account_id)
+
+    if from_account_id == to_account_id do
+      add_error(changeset, :to_account_id, "is not allowed")
+    else
+      changeset
+    end
+  end
 
   defp normalize_account_ids(%Changeset{changes: %{type: :deposit}} = changeset) do
     put_change(changeset, :from_account_id, nil)
