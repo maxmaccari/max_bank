@@ -1,27 +1,14 @@
 defmodule MaxBankWeb.TransactionControllerTest do
   use MaxBankWeb.ConnCase
 
-  alias MaxBankWeb.UserAuth
-
   @invalid_attrs %{amount: nil, type: nil}
 
-  setup %{conn: conn} do
-    user = insert(:user)
+  setup :authenticated_user
+
+  setup %{user: user} do
     account = insert(:account, user_id: user.id)
 
-    {:ok, token} = UserAuth.encode_and_sign(user)
-
-    conn =
-      conn
-      |> put_req_header("accept", "application/json")
-      |> put_req_header("authorization", "Bearer #{token}")
-
-    {:ok,
-     [
-       conn: put_req_header(conn, "accept", "application/json"),
-       account: account,
-       user: user
-     ]}
+    {:ok, [account: account]}
   end
 
   describe "index" do
