@@ -26,7 +26,7 @@ defmodule MaxBankWeb.TransactionController do
         parsed = maybe_convert_date(value),
         key in ["from", "to"],
         parsed != nil,
-        do: {String.to_atom(key), parsed}
+        do: {String.to_existing_atom(key), parsed}
   end
 
   defp maybe_convert_date(value) do
