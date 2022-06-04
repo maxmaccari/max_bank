@@ -58,4 +58,25 @@ defmodule MaxBank.Banking.Transaction do
     |> change()
     |> add_error(:amount, "insuficient funds")
   end
+
+  import Ecto.Query
+
+  def from_account(query \\ __MODULE__, account_id) do
+    from(t in query,
+      where: t.from_account_id == ^account_id or t.to_account_id == ^account_id
+    )
+  end
+
+  def apply_filters(query \\ __MODULE__, filters) do
+    Enum.reduce(filters, query, fn
+      {:from, from_date}, query ->
+        from(t in query, where: t.inserted_at >= ^from_date)
+
+      {:to, to_date}, query ->
+        from(t in query, where: t.inserted_at <= ^to_date)
+
+      _, query ->
+        query
+    end)
+  end
 end

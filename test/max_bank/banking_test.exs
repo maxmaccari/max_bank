@@ -222,6 +222,40 @@ defmodule MaxBank.BankingTest do
       assert [%Transaction{id: ^id}] = Banking.list_transactions(account)
     end
 
+    test "list_transactions/2 returns the transactions filtering by date" do
+      account = insert(:account)
+
+      %{id: first_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 1, 12, 0, 0)
+        )
+
+      %{id: middle_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 2, 12, 0, 0)
+        )
+
+      %{id: last_id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0)
+        )
+
+      assert [%Transaction{id: ^first_id}] =
+               Banking.list_transactions(account, to: NaiveDateTime.new!(2022, 1, 1, 13, 0, 0))
+
+      assert [%Transaction{id: ^last_id}] =
+               Banking.list_transactions(account, from: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0))
+
+      assert [%Transaction{id: ^middle_id}] =
+               Banking.list_transactions(account,
+                 from: NaiveDateTime.new!(2022, 1, 2, 0, 0, 0),
+                 to: NaiveDateTime.new!(2022, 1, 2, 23, 59, 59)
+               )
+    end
+
     test "get_transaction!/2 returns the transaction from account" do
       %{to_account_id: account_id, id: id} = insert(:transaction)
       account = Banking.get_account!(account_id)

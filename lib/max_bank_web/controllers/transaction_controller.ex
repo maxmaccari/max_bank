@@ -16,9 +16,24 @@ defmodule MaxBankWeb.TransactionController do
     end
   end
 
-  def index(conn, _params, account) do
-    transactions = Banking.list_transactions(account)
+  def index(conn, params, account) do
+    transactions = Banking.list_transactions(account, sanitize_filter_params(params))
     render(conn, "index.json", transactions: transactions)
+  end
+
+  defp sanitize_filter_params(params) do
+    for {key, value} <- params,
+        parsed = maybe_convert_date(value),
+        key in ["from", "to"],
+        parsed != nil,
+        do: {String.to_atom(key), parsed}
+  end
+
+  defp maybe_convert_date(value) do
+    case NaiveDateTime.from_iso8601(value) do
+      {:ok, value} -> value
+      {:error, _} -> nil
+    end
   end
 
   def create(conn, %{"transaction" => transaction_params}, account) do

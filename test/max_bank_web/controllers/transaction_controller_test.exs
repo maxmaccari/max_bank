@@ -31,6 +31,35 @@ defmodule MaxBankWeb.TransactionControllerTest do
       conn = get(conn, Routes.transaction_path(conn, :index))
       assert [%{"id" => ^id}] = json_response(conn, 200)["data"]
     end
+
+    test "filter transactions by date", %{conn: conn, account: account} do
+      insert(:transaction,
+        to_account_id: account.id,
+        inserted_at: NaiveDateTime.new!(2022, 1, 1, 12, 0, 0)
+      )
+
+      insert(:transaction,
+        to_account_id: account.id,
+        inserted_at: NaiveDateTime.new!(2022, 1, 3, 12, 0, 0)
+      )
+
+      %{id: id} =
+        insert(:transaction,
+          to_account_id: account.id,
+          inserted_at: NaiveDateTime.new!(2022, 1, 2, 12, 0, 0)
+        )
+
+      conn =
+        get(
+          conn,
+          Routes.transaction_path(conn, :index,
+            from: "2022-01-02 11:00:00",
+            to: "2022-01-02 13:00:00"
+          )
+        )
+
+      assert [%{"id" => ^id}] = json_response(conn, 200)["data"]
+    end
   end
 
   describe "create transaction" do
